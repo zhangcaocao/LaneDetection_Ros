@@ -1,0 +1,20 @@
+{
+    "configurations": [
+        {
+            "browse": {
+                "databaseFilename": "",
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "includePath": [
+                "/home/zhanaogcaoc/catkin_ws/devel/include",
+                "/opt/ros/kinetic/include",
+                "/home/zhanaogcaoc/catkin_ws/src/vision_opencv/cv_bridge/include",
+                "/home/zhanaogcaoc/catkin_ws/src/vision_opencv/image_geometry/include",
+                "/usr/include"
+            ],
+            "name": "Linux",
+            "intelliSenseMode": "gcc-x64"
+        }
+    ],
+    "version": 4
+}
