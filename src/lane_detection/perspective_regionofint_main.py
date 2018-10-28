@@ -13,13 +13,18 @@ def perspective_transform(img):
     '''
     perspective transform
     '''
+    
+    # img = cv2.resize(img ,(240, 320), interpolation=cv2.INTER_CUBIC)
+    # plt.imshow(img)
+    # plt.show()
 
     imshape = img.shape
-    #print (imshape)
-    vertices = np.array([[(0.75*imshape[1], 0.63*imshape[0]), (imshape[1],imshape[0]),
-                       (0,imshape[0]),(0.35*imshape[1], 0.63*imshape[0])]], dtype=np.float32)
+    print (imshape)
+
+    vertices = np.array([[(imshape[1], 0.63*imshape[0]), (imshape[1], imshape[0]),
+                       (0.42*imshape[1],imshape[0]),(0.42*imshape[1], 0.63*imshape[0])]], dtype=np.float32)
     src= np.float32(vertices)
-    dst = np.float32([[0.75*img.shape[1],0],[img.shape[1],img.shape[0]],
+    dst = np.float32([[img.shape[1],0],[img.shape[1],img.shape[0]],
                       [0.25*img.shape[1],img.shape[0]],[0.25*img.shape[1],0]])
 
     
@@ -53,15 +58,18 @@ def region_of_interest(img, vertices):
 
 if __name__ == '__main__':
 
-    img_file = '/home/zhanaogcaoc/catkin_ws/src/lane_detection/bin/test_images/test.jpg'
+    img_file = '/home/zhangcaocao/catkin_ws/src/lane_detection/test/test1.jpg'
     img = calibration_main.undistort_image(img_file, Visualization=False)
-    img, abs_bin, mag_bin, dir_bin, hls_bin = thresholding_main.combined_thresh(img)
+    # img, abs_bin, mag_bin, dir_bin, hls_bin = thresholding_main.combined_thresh(img)
     
     warped, unwarped, m, m_inv = perspective_transform(img)
+    
     plt.subplot(1, 2, 1)
+    # unwarped = cv2.resize(unwarped ,(240, 320), interpolation=cv2.INTER_CUBIC)
     plt.imshow(unwarped, cmap='gray', vmin=0, vmax=1)
 
     plt.subplot(1, 2, 2)
+    # warped = cv2.resize(warped ,(240, 320), interpolation=cv2.INTER_CUBIC)
     plt.imshow(warped, cmap='gray', vmin=0, vmax=1)
     plt.show()
 
@@ -77,5 +85,5 @@ if __name__ == '__main__':
 
     cv2.imwrite('warped.png', warped)
     
-    # print warped.shape
+    print warped.shape
     # plt.show()

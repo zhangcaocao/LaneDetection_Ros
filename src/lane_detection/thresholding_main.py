@@ -129,13 +129,8 @@ class Threshold():
 
 if __name__ == '__main__':
 
-	# _hls_thresh_val = rospy.get_param("/lane_detection_node/_hls_thresh_", None)
-	# _hls_thresh_val_max 		= (rospy.get_param("/lane_detection_node/_hls_thresh_max", None))
-	# print tuple((_hls_thresh_val_max, 0))
-	# print type(_hls_thresh_val_max)
-	# print _hls_thresh_val_max
 
-	img_file = '/home/zhangcaocao/catkin_ws/src/lane_detection/test/test.jpg'
+	img_file = '/home/zhangcaocao/catkin_ws/src/lane_detection/test/test1.jpg'
 	img = calibration_main.undistort_image(img_file, Visualization=False)
 	all_combined, abs_bin, mag_bin, dir_bin, hls_bin = Threshold().combined_thresh(img)
 	plt.subplot(3, 3, 1)

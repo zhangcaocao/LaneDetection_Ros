@@ -5,18 +5,19 @@
       <param name="frequency" value="30"/> 
       <param name="sensor_timeout" value="0.1"/> 
 
-<!-- thresholding param value -->
-      <param name="_abs_sobel_thresh_min" value="20"/> 
-      <param name="_abs_sobel_thresh_max" value="100"/> 
+      <!-- thresholding param value -->
+      
+      <param name="_abs_sobel_thresh_min" value="70"/> 
+      <param name="_abs_sobel_thresh_max" value="240"/> 
 
-      <param name="_mag_thresh_min" value="30"/>
-      <param name="_mag_thresh_max" value="100"/>
+      <param name="_mag_thresh_min" value="72"/>
+      <param name="_mag_thresh_max" value="240"/>
 
-      <param name="_dir_threshold_min" value="0.7"/> 
-      <param name="_dir_threshold_max" value="1.73"/> 
+      <param name="_dir_threshold_min" value="0.35"/> 
+      <param name="_dir_threshold_max" value="1.57"/> 
 
-      <param name="_hls_thresh_min" value="113"/> 
-      <param name="_hls_thresh_max" value="255"/> 
+      <param name="_hls_thresh_min" value="98"/> 
+      <param name="_hls_thresh_max" value="250"/>
 
     </node>
 <!-- <include file="$(find my_move_robot)/launch/my_move_robot.launch"></includenclude> -->

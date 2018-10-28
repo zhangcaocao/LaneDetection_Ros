@@ -15,7 +15,7 @@ from std_msgs.msg import Float64
 import time
 
 
-MAX_STEER = 30
+MAX_STEER = 1800
 
 class PID_NODE():
     def __init__(self, KP, KI, KD):
@@ -30,8 +30,7 @@ class PID_NODE():
         self.sum_cte = 0.0
         self.SteeringAngle_CMD = TwistStamped()
         self.SteeringAngle_CMD.twist.angular.z = 0.0
-        self.SteeringAngle_CMD.twist.angular.z = 0.0
-        self.SteeringAngle_CMD.twist.linear.x  = 0.0
+        self.SteeringAngle_CMD.twist.linear.x  = 0.3
         self.vel_pub = rospy.Publisher("/cmd_vel", TwistStamped, queue_size = 1) 
 
 
@@ -47,15 +46,14 @@ class PID_NODE():
             self.sum_cte += cte
 
             steer = -(self.kp * self.p_error + self.ki * self.i_error + self.kd * self.d_error)
-            
+            print "steer {0}".format(steer)
             if abs(steer) > MAX_STEER:
                 if steer > 0.0:
-                    steer = 30.0
+                    steer = 1800.0
                 if steer < 0.0:
-                    steer = -30.0 # (-30, 30)
-            print steer
+                    steer = -1800.0 # (-1800, 1800)
             # (-0.5, 0.5) --- +0.5 -> (0, 1)
-            normedsteeringAngle = (steer / 60 + 0.5)
+            normedsteeringAngle = 1- (steer / 1800 + 0.5)
             self.SteeringAngle_CMD.twist.angular.z = normedsteeringAngle
             self.vel_pub.publish(self.SteeringAngle_CMD)
             print "normedsteeringAngle {0}".format(normedsteeringAngle)
@@ -77,7 +75,7 @@ class PID_NODE():
         rospy.spin()
 
 def main():
-    pidnode = PID_NODE(10, 0.01, 0.01)
+    pidnode = PID_NODE(60000, 0.01, 0.01)
     pidnode._listener()
 
     

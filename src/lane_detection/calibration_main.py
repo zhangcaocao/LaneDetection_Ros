@@ -90,7 +90,7 @@ def undistort_image(distort_img, Visualization=False, Do_calibration=False):
     
     distort_img = cv2.cvtColor(distort_img, cv2.COLOR_BGR2RGB)
     undist_image = cv2.undistort(distort_img, mtx, dist, None, mtx)
-
+    
     if Visualization:
         plt.subplot(1,2,1)
         plt.imshow(distort_img)
@@ -105,4 +105,4 @@ def undistort_image(distort_img, Visualization=False, Do_calibration=False):
 
 
 if __name__ == '__main__':
-    undistort_image("/home/zhanaogcaoc/catkin_ws/src/lane_detection/src/lane_detection/camera_cal/calibration12.jpg", Visualization=True, Do_calibration=True)
+    undistort_image("/home/zhangcaocao/catkin_ws/src/lane_detection/test/test3.jpg", Visualization=True, Do_calibration=True)
