@@ -19,13 +19,15 @@ import time
 
 QUEUE_SIZE = 3
 
+
+
 class pipeline():
     def __init__(self):
         
         self.Result_Image_pub   = rospy.Publisher('Result_Image', sensor_msgs.msg.Image, queue_size=QUEUE_SIZE)
         self.Deviation_pub      = rospy.Publisher('Deviation', Float64, queue_size=QUEUE_SIZE)
         self.Avg_cur_pub        = rospy.Publisher('Avg_curvature', Float64, queue_size=QUEUE_SIZE)
-
+        self.Lan_detected       = False
     
     def _draw_on_original(self, undist, left_fitx, right_fitx, ploty,Minv):
         # Create an image to draw the lines on
@@ -46,7 +48,7 @@ class pipeline():
         pts = np.hstack((pts_left, pts_right))
         
         # cv2.fillPoly(color_warp, np.int_([pts]), (0, 255, 0))
-        print np.int_([pts]).shape    
+        #print np.int_([pts]).shape    
         # Warp the blank back to original image space using inverse perspective matrix (Minv)
         right_x_num = int(right_fitx.size/2)
         left_x_num = int(left_fitx.size/2)
@@ -63,6 +65,7 @@ class pipeline():
         return result
 
     def _pipeline(self, img, model='debug'):
+
         # print "self._mag_thresh : {0}".format(type(list(self._mag_thresh)))
         undist = calibration_main.undistort_image(img, Visualization=False)
         # thresh_combined, grad_th, col_th 
@@ -72,9 +75,9 @@ class pipeline():
         #pass the perspective image to the lane fitting stage
         time_bin_2 = time.clock()
         slid_time_1 = time.clock()
-        slides_pers, left_fitx, right_fitx, ploty, avg_cur, dist_centre_val = sliding_main.for_sliding_window(perspective)
+        slides_pers, left_fitx, right_fitx, ploty, avg_cur, dist_centre_val,  self.Lan_detected = sliding_main.for_sliding_window(perspective)
         slid_time_2 = time.clock()
-                
+        
         #draw the detected lanes on the original image for_sliding_window
         _draw_on_original_time1 = time.clock()
         mapped_lane = self._draw_on_original(undist, left_fitx, right_fitx, ploty, Minv)
@@ -144,26 +147,27 @@ class pipeline():
             diagScreen[840:1080, 0:1200]   = legend
             
             viz_time2 = time.clock()
-            rospy.loginfo(
-                "*****---  Used time: ***----\n"
-                "bin_time:" + str(time_bin_2 - time_bin_1) +"   " 
-             + "slid_time:" + str(slid_time_2 - slid_time_1) + "    " 
-             + "_draw_on_original_time: " + str(_draw_on_original_time2 - _draw_on_original_time1) + "   "
-             + "viz time:" + str(viz_time2 - viz_time1)
-             )   
+            # rospy.loginfo(
+            #     "*****---  Used time: ***----\n"
+            #     "bin_time:" + str(time_bin_2 - time_bin_1) +"   " 
+            #  + "slid_time:" + str(slid_time_2 - slid_time_1) + "    " 
+            #  + "_draw_on_original_time: " + str(_draw_on_original_time2 - _draw_on_original_time1) + "   "
+            #  + "viz time:" + str(viz_time2 - viz_time1)
+            #  )   
             return diagScreen, dist_centre_val, avg_cur
 
         cv2.putText(mapped_lane, curvature, (30, 60), font, 1, (255,0,0), 2)
         cv2.putText(mapped_lane, dist_centre, (30, 120), font, 1, (255,0,0), 2)
         viz_time2 = time.clock()
-        rospy.loginfo(
-                "*****---  Used time: ***----\n"
-                "bin_time:" + str(time_bin_2 - time_bin_1) +"   " 
-             + "slid_time:" + str(slid_time_2 - slid_time_1) + "    " 
-             + "_draw_on_original_time: " + str(_draw_on_original_time2 - _draw_on_original_time1) + "   "
-             + "viz time:" + str(viz_time2 - viz_time1)
-             ) 
+        # rospy.loginfo(
+        #         "*****---  Used time: ***----\n"
+        #         "bin_time:" + str(time_bin_2 - time_bin_1) +"   " 
+        #      + "slid_time:" + str(slid_time_2 - slid_time_1) + "    " 
+        #      + "_draw_on_original_time: " + str(_draw_on_original_time2 - _draw_on_original_time1) + "   "
+        #      + "viz time:" + str(viz_time2 - viz_time1)
+        #      ) 
         return mapped_lane, dist_centre_val, avg_cur
+
 
 
     def _Test(self):
@@ -179,13 +183,16 @@ class pipeline():
             cvimg = cvb.imgmsg_to_cv2(Image)
             time1 = time.clock()
             result, dist_centre_val, avg_cur = self._pipeline(cvimg)
-            rospy.loginfo("dist_centre_val: " + str(dist_centre_val))
-            rospy.loginfo("_pipeline:" + str(time.clock() - time1))        
+
+            # rospy.loginfo("dist_centre_val: " + str(dist_centre_val))
+            # rospy.loginfo("_pipeline:" + str(time.clock() - time1))        
             self.Result_Image_pub.publish(cvb.cv2_to_imgmsg(result))
-            self.Avg_cur_pub.publish(avg_cur)
-            # r < 0; l > 0 。
-            self.Deviation_pub.publish(dist_centre_val)
-            
+            if (self.lan_detected()):
+                self.Avg_cur_pub.publish(avg_cur)
+                # r < 0; l > 0 。
+                self.Deviation_pub.publish(dist_centre_val)
+            else:
+                print "---------- not detetced lane -------------"            
         except CvBridgeError as e:
             rospy.logerr(e)
 
@@ -196,8 +203,13 @@ class pipeline():
         rospy.Subscriber('Image', sensor_msgs.msg.Image, self._callback, queue_size=QUEUE_SIZE)
         rospy.spin()
 
+    def lan_detected(self):
+
+        return self.Lan_detected
+
     def main(self):
         self._listener()
+
 
 if __name__ == '__main__':
     lanedetection_pipeline = pipeline()

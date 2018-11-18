@@ -6,9 +6,10 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from global_lane import *
 
-
+lan_detected = False
 
 def for_sliding_window(binary_warped):
+    global lan_detected
     # Assuming you have created a warped binary image called "binary_warped"
     # Take a histogram of the bottom half of the image
     histogram = np.sum(binary_warped[int(binary_warped.shape[0]/2):,:], axis=0)
@@ -77,19 +78,24 @@ def for_sliding_window(binary_warped):
 
 
     #check for any lanes that are not detected in this current frame then use the history
-    if (leftx.size < 5):
+    if (leftx.size < 2200):
         left_lane.detected = False
-        #print ("Left lane deteceted - False")
+        # print ("Left lane deteceted - False")
     else:
         left_lane.detected = True
         #print ("Left lane detected - true")
     
-    if (rightx.size < 5):
+    if (rightx.size < 1600):
         right_lane.detected = False
         #print ("Right lane detected False")
     else:
         right_lane.detected = True
         #print ("Right lane detected True")
+
+    if left_lane.detected == True or right_lane.detected == True:
+        lan_detected = True
+    else:
+        lan_detected = False 
         
     #print (left_lane.detected, right_lane.detected)
     #if lane is detected then try to fit the poly
@@ -126,7 +132,7 @@ def for_sliding_window(binary_warped):
         left_lane.first_frame = False
         left_lane.bestx = np.vstack([left_lane.bestx,left_fitx])
         left_lane.bestx[0] = left_fitx
-    # print 
+
     left_lane.bestx = np.vstack([left_lane.bestx,left_fitx])
     left_lane.bestx = np.average(left_lane.bestx[-left_lane.smoothen_nframes:], axis = 0)
     
@@ -177,8 +183,8 @@ def for_sliding_window(binary_warped):
     print "leftx.size {0},rightx.size {1}".format(leftx.size, rightx.size)
     
     #if the lane was detectded then calculate the curvatire or use the history
-    if (leftx.size > 2 or rightx.size > 2) :
-        # print left_fitx
+    if (leftx.size > 1000 and rightx.size > 1000 ):
+
         y_eval = np.max(ploty)
         # Define conversions in x and y from pixels space to meters
         ym_per_pix = 0.0025                 #70/230       # meters per pixel in y dimension
@@ -190,9 +196,7 @@ def for_sliding_window(binary_warped):
         # Calculate the new radii of curvature
         left_curverad = ((1 + (2*left_fit_cr[0]*y_eval*ym_per_pix + left_fit_cr[1])**2)**1.5) / np.absolute(2*left_fit_cr[0])
         right_curverad = ((1 + (2*right_fit_cr[0]*y_eval*ym_per_pix + right_fit_cr[1])**2)**1.5) / np.absolute(2*right_fit_cr[0])
-        # Now our radius of curvature is in meters and dist from centre
-        # print ploty[-1]
-        # print left_fitx[-1]
+
         right_x_num = int(right_fitx.size/2)
         left_x_num = int(left_fitx.size/2)
         cv2.circle(result, (int(left_fitx[left_x_num]),int(ploty[left_x_num])), 20, (0, 255, 0), -5)
@@ -200,15 +204,10 @@ def for_sliding_window(binary_warped):
         cv2.line(result, (int(left_fitx[left_x_num]),int(ploty[left_x_num])), (int(right_fitx[right_x_num]), int(ploty[right_x_num])), (0, 255, 0), 5)
         cv2.line(result, (int(result.shape[1]/2),0), (int(result.shape[1]/2), int(result.shape[0])), (0, 0, 250), 2)
 
-        # plt.imshow(result, cmap='gray')
-        # plt.show()
         lane_centre = (left_fitx[left_x_num] + right_fitx[right_x_num])/2.0
-        # print lane_centre
         camera_centre = result.shape[1]/2.0
-        # print camera_centre
 
         # 右边 < 0; 左边 > 0 。
-
         dist_centre_val = (lane_centre - camera_centre)*xm_per_pix
         avg_cur = (right_curverad+left_curverad)/2.0
         
@@ -220,7 +219,6 @@ def for_sliding_window(binary_warped):
         left_lane.radius_of_curvature[0] = avg_cur
         left_lane.radius_of_curvature = np.average(left_lane.radius_of_curvature[-left_lane.smoothen_nframes:], axis = 0)
         
-    #print (avg_cur, dist_centre_val)
     # else use the history curvature
     else:
         dist_centre_val = left_lane.line_base_pos
@@ -229,4 +227,4 @@ def for_sliding_window(binary_warped):
     #reset the lane detected to false for the next frame 
     left_lane.detected == False
     right_lane.detected == False
-    return result, left_lane.bestx, right_lane.bestx, ploty, left_lane.radius_of_curvature, left_lane.line_base_pos
+    return result, left_lane.bestx, right_lane.bestx, ploty, left_lane.radius_of_curvature, left_lane.line_base_pos, lan_detected

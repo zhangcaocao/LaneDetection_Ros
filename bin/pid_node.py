@@ -30,7 +30,7 @@ class PID_NODE():
         self.sum_cte = 0.0
         self.SteeringAngle_CMD = TwistStamped()
         self.SteeringAngle_CMD.twist.angular.z = 0.0
-        self.SteeringAngle_CMD.twist.linear.x  = 0.3
+        self.SteeringAngle_CMD.twist.linear.x  = 0.8
         self.vel_pub = rospy.Publisher("/cmd_vel", TwistStamped, queue_size = 1) 
 
 
@@ -69,16 +69,17 @@ class PID_NODE():
             print(e)
                 
     def _listener(self):
-        rospy.init_node('PID_Twist_NODE', anonymous=True)
+        rospy.init_node('lane_PID', anonymous=True)
         #Subscriber函数第一个参数是topic的名称，第二个参数是接受的数据类型 第三个参数是回调函数的名称
         rospy.Subscriber('Deviation', Float64, self._callback, queue_size=QUEUE_SIZE)
         rospy.spin()
 
 def main():
-    pidnode = PID_NODE(60000, 0.01, 0.01)
+    pidnode = PID_NODE(60000, 0.01, 0)
     pidnode._listener()
 
     
 if __name__ == '__main__':
     main()
     
+#  rosrun rosserial_python serial_node.py /dev/ttyUSB0
