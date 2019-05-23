@@ -11,33 +11,32 @@ from cv_bridge import CvBridge, CvBridgeError, getCvType
 
 
 
-QUEUE_SIZE = 1
+QUEUE_SIZE = 10
 
 # Send each image by iterate it from given array of files names  to a given topic,
 # as a regular and compressed ROS Images msgs.
 class Source:
 
     def __init__(self, topic, cam):
-        self.pub            = rospy.Publisher(topic, sensor_msgs.msg.Image, queue_size=QUEUE_SIZE)
-        self.pub_compressed = rospy.Publisher(topic + "/compressed", sensor_msgs.msg.CompressedImage, queue_size=QUEUE_SIZE)
-#        print cam
-	self.cap = cv2.VideoCapture(cam)
+        self.pub = rospy.Publisher(topic, sensor_msgs.msg.Image, queue_size=QUEUE_SIZE)
+        self.cap = cv2.VideoCapture(int(cam))
 
     def spin(self):
         cvb = CvBridge()
         while not rospy.core.is_shutdown():
             ret, cvim = self.cap.read()
-	    print(ret)
-            #image = cv2.imread('/home/zhangcaocao/catkin_ws/src/lane_detection/test/test.jpg')
-            cvim = cv2.resize(cvim ,(240, 320), interpolation=cv2.INTER_CUBIC)
+            # print(ret)
+            # cvim = cv2.imread('/home/zhangcaocao/catkin_ws/src/lane_detection/test/test2.jpg')
+            cvim = cv2.resize(cvim ,(60, 80), interpolation=cv2.INTER_CUBIC)
+            rate = rospy.Rate(30)
             rospy.loginfo("image shape: " + str(cvim.shape))
             self.pub.publish(cvb.cv2_to_imgmsg(cvim))
-            self.pub_compressed.publish(cvb.cv2_to_compressed_imgmsg(cvim))
-            time.sleep(0.1)
+            rate.sleep()
 
 def main(args):
     s = Source('Image', args[1])
     rospy.init_node('Source')
+    
     try:
         s.spin()
         rospy.spin()

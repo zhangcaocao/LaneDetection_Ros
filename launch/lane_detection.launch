@@ -16,9 +16,9 @@
       <param name="_dir_threshold_min" value="0.35"/> 
       <param name="_dir_threshold_max" value="1.57"/> 
 
-      <param name="_hls_thresh_min" value="98"/> 
+      <param name="_hls_thresh_min" value="100"/> 
       <param name="_hls_thresh_max" value="250"/>
 
     </node>
-<!-- <include file="$(find my_move_robot)/launch/my_move_robot.launch"></includenclude> -->
+<node name="rviz" pkg="rviz" type="rviz" args="-d $(find lane_detection)/rviz/view_image.rviz"/>
 </launch>

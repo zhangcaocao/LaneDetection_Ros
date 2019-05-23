@@ -8,7 +8,7 @@ import matplotlib.image as mpimg
 import glob
 import pickle
 
-ROOT_CAMERA_PATH = "/home/zhangcaocao/catkin_ws/src/lane_detection/src/lane_detection/camera_cal/"
+ROOT_CAMERA_PATH = "/home/ubuntu/catkin_ws/src/lane_detection/src/lane_detection/camera_cal/"
 
 def _get_camera_calibration():
     '''
@@ -105,4 +105,4 @@ def undistort_image(distort_img, Visualization=False, Do_calibration=False):
 
 
 if __name__ == '__main__':
-    undistort_image("/home/zhangcaocao/catkin_ws/src/lane_detection/test/test3.jpg", Visualization=True, Do_calibration=True)
+    undistort_image("/home/ubuntu/catkin_ws/src/lane_detection/test/test3.jpg", Visualization=True, Do_calibration=True)

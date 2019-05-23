@@ -1,17 +1,22 @@
-Welcome to here,  I will introduce this project to you.
+## 车道线检测与跟随
 
-First of all, this project work on lane detection with ros for the self-driver -car .
- 
-## Environment INFO:
 
-the environment that I used as follows:
+####  / bin 可执行文件目录
 
-* ROS : kinetic
-* Python: 2.7.12
-* OpenCv: 3.0+
-* System:  ubuntu1604
+* "image_talker.py":
 
-## ImageProcess:
+读取摄像头图像。并且发布到 '/Image' topic, 大小为 （60 80 ），发布频率为30Hz。
 
-You can go to [here](https://github.com/georgesung/advanced_lane_detection) to get more details.
+* "main.py":
+
+车道线的检测算法调用，以及PID的运算。
+
+* "pid_node.py":
+
+PID的实现，在"main.py"中被调用。
+
+#### /src/lane_detection 车道线检测图像处理过程库。
+
+
+处理过程可以参考 [github.com/georgesung/advanced_lane_detection](https://github.com/georgesung/advanced_lane_detection)
 

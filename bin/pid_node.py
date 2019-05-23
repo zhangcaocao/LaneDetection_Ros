@@ -1,21 +1,19 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-QUEUE_SIZE = 3
-DISTANCE = 10
-LOAD_WIDTH = 6
-MAX_SteeringAngle = 30
+QUEUE_SIZE = 1
+MAX_STEER = 16.0
+
 
 
 from geometry_msgs.msg import Twist, TwistStamped
 from lane_detection import *
 import rospy
-from std_msgs.msg import Float64
+from std_msgs.msg import Float32
 
 import time
 
 
-MAX_STEER = 1800
 
 class PID_NODE():
     def __init__(self, KP, KI, KD):
@@ -26,60 +24,54 @@ class PID_NODE():
         self.p_error = 0.0
         self.d_error = 0.0
         self.i_error = 0.0
+        self.cte     = 0.0
         self.prev_cte = 0.0
-        self.sum_cte = 0.0
-        self.SteeringAngle_CMD = TwistStamped()
-        self.SteeringAngle_CMD.twist.angular.z = 0.0
-        self.SteeringAngle_CMD.twist.linear.x  = 0.8
-        self.vel_pub = rospy.Publisher("/cmd_vel", TwistStamped, queue_size = 1) 
+        self.sum_cte  = 0.0
+        self.number = 0
+        self.SteeringAngle_CMD = Twist()
+        self.SteeringAngle_CMD.angular.z = 0.0
+        self.SteeringAngle_CMD.linear.x  = 0.15
+        self.Lane_Steer_pub = rospy.Publisher("/cmd_vel", Twist, queue_size = 1) 
+        
 
 
-
-    def _PID_Cal(self, cte):
+    def Update_Err(self, cte):
         try:
             global MAX_STEER
-            cte = cte.data
-            self.p_error = cte
-            self.d_error = cte - self.prev_cte
+            self.cte = cte
+            self.p_error = self.cte
+            self.d_error = self.cte - self.prev_cte
             self.i_error = self.sum_cte
-            self.prev_cte = cte
-            self.sum_cte += cte
+            self.prev_cte = self.cte
+            self.sum_cte += self.cte
+            rospy.loginfo('** Error Updated ! ' + "cte.data: {0}".format(self.cte))
+            return self.p_error, self.i_error, self.d_error
+        except Exception as e:
+            rospy.logerr(e)
+            # return self.p_error, self.i_error, self.d_error
 
-            steer = -(self.kp * self.p_error + self.ki * self.i_error + self.kd * self.d_error)
-            print "steer {0}".format(steer)
+
+    def PID_Cal(self, cte):
+        try:
+            global MAX_STEER
+            p_error, i_error, d_error = self.Update_Err(cte)
+            steer = -(self.kp * p_error + self.ki * i_error + self.kd * d_error)
+            # print "steer {0}".format(steer)
             if abs(steer) > MAX_STEER:
                 if steer > 0.0:
-                    steer = 1800.0
+                    steer = MAX_STEER
                 if steer < 0.0:
-                    steer = -1800.0 # (-1800, 1800)
+                    steer = -MAX_STEER
+
             # (-0.5, 0.5) --- +0.5 -> (0, 1)
-            normedsteeringAngle = 1- (steer / 1800 + 0.5)
-            self.SteeringAngle_CMD.twist.angular.z = normedsteeringAngle
-            self.vel_pub.publish(self.SteeringAngle_CMD)
-            print "normedsteeringAngle {0}".format(normedsteeringAngle)
-            print "------------"
-        except Exception as e:
-            print(e)
+            #    0   0.5  1  
+            normedsteeringAngle = (steer / (5.1 * MAX_STEER))
+            self.SteeringAngle_CMD.angular.z = normedsteeringAngle
+            self.Lane_Steer_pub.publish(self.SteeringAngle_CMD)
+            rospy.loginfo("normedsteeringAngle: {0}".format(normedsteeringAngle))
 
-    def _callback(self, Deviation):
-        try:
-            self._PID_Cal(Deviation)
 
         except Exception as e:
-            print(e)
-                
-    def _listener(self):
-        rospy.init_node('lane_PID', anonymous=True)
-        #Subscriber函数第一个参数是topic的名称，第二个参数是接受的数据类型 第三个参数是回调函数的名称
-        rospy.Subscriber('Deviation', Float64, self._callback, queue_size=QUEUE_SIZE)
-        rospy.spin()
+            rospy.logerr(e)
 
-def main():
-    pidnode = PID_NODE(60000, 0.01, 0)
-    pidnode._listener()
-
-    
-if __name__ == '__main__':
-    main()
-    
 #  rosrun rosserial_python serial_node.py /dev/ttyUSB0

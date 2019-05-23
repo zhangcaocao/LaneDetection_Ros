@@ -10,7 +10,7 @@ class Line():
         # x values of the last n fits of the line
         self.recent_xfitted = [] 
         #average x values of the fitted line over the last n iterations
-        self.bestx = np.zeros(320)
+        self.bestx = np.zeros(80)
         #polynomial coefficients averaged over the last n iterations
         self.best_fit = np.zeros(3)  
         #polynomial coefficients for the most recent fit
@@ -26,7 +26,7 @@ class Line():
         #y values for detected line pixels
         self.ally = None
         #smoothen the n frames 
-        self.smoothen_nframes = 10
+        self.smoothen_nframes = 1
         #first frame 
         self.first_frame = True
         

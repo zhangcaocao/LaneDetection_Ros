@@ -9,6 +9,7 @@ import pickle
 
 import calibration_main
 import rospy
+from lane_detection import *
 
 
 class Threshold():
@@ -28,7 +29,7 @@ class Threshold():
 		
 
 
-	def _abs_sobel_thresh(self, gray, orient='x', thresh_min=20, thresh_max=100):
+	def _abs_sobel_thresh(self, img, orient='x', thresh_min=20, thresh_max=100):
 		'''
 		Takes an image, gradient orientation, and threshold min/max values
 
@@ -43,6 +44,7 @@ class Threshold():
 
 		# Apply x or y gradient with the OpenCV Sobel() function
 		# and take the absolute value
+		gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
 		if orient == 'x':
 			abs_sobel = np.absolute(cv2.Sobel(gray, cv2.CV_64F, 1, 0))
 		if orient == 'y':
@@ -57,13 +59,13 @@ class Threshold():
 		# Return the result
 		return abs_bin_image
 
-	def _mag_thresh(self, gray, sobel_kernel=3, _mag_thresh=(30, 100)):
+	def _mag_thresh(self, img, sobel_kernel=3, _mag_thresh=(30, 100)):
 		'''
 		Return the magnitude of the gradient for a given sobel kernel size and threshold values
 		'''
 
 		# Convert to grayscael
-		# gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+		gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
 		sobelx = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=sobel_kernel)
 		sobely = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=sobel_kernel)
 		gradmag = np.sqrt(sobelx**2 + sobely**2)
@@ -76,13 +78,13 @@ class Threshold():
 		return mag_bin_image
 
 
-	def _dir_threshold(self, gray, sobel_kernel=3, thresh=(0, np.pi/2)):
+	def _dir_threshold(self, img, sobel_kernel=3, thresh=(0, np.pi/2)):
 		'''
 		Return the direction of the gradient for a given sobel kernel size and threshold values
 
 		'''
 		# print thresh[1]
-		# gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+		gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
 		sobelx = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=sobel_kernel)
 		sobely = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=sobel_kernel)
 		# Take the absolute value of the gradient direction,
@@ -109,20 +111,21 @@ class Threshold():
 	def combined_thresh(self, img):
 		'''
 		This function Combine all the solutions and return the result separately
-
-		TODO(zhangcaocao): 
-			Get parameters from the Ros.
-		'''
-
-		gray_img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-		abs_bin = self._abs_sobel_thresh(gray_img, orient='x', thresh_min=self._abs_sobel_thresh_val_min, thresh_max=self._abs_sobel_thresh_val_max)
 		
-		mag_bin = self._mag_thresh(gray_img, sobel_kernel=3, _mag_thresh=tuple((self._mag_thresh_val_min, self._mag_thresh_val_max)))
-		dir_bin = self._dir_threshold(gray_img, sobel_kernel=15, thresh=tuple((self._dir_thresh_val_min, self._dir_thresh_val_max)))
+		'''
+		imshape = img.shape
+		# print type(img)
+
+		
+		abs_bin = self._abs_sobel_thresh(img, orient='x', thresh_min=self._abs_sobel_thresh_val_min, thresh_max=self._abs_sobel_thresh_val_max)
+		
+		mag_bin = self._mag_thresh(img, sobel_kernel=3, _mag_thresh=tuple((self._mag_thresh_val_min, self._mag_thresh_val_max)))
+		dir_bin = self._dir_threshold(img, sobel_kernel=15, thresh=tuple((self._dir_thresh_val_min, self._dir_thresh_val_max)))
 		hls_bin = self._hls_thresh(img, thresh=tuple((self._hls_thresh_val_min, self._hls_thresh_val_max)))
 
 		final_combined = np.zeros_like(dir_bin)
-		final_combined[(abs_bin == 1 | ((mag_bin == 1) & (dir_bin == 1))) | hls_bin == 1] = 1
+		#final_combined[(abs_bin == 1 | ((mag_bin == 1) & (dir_bin == 1)))] = 1
+                final_combined[(abs_bin == 1 | ((mag_bin == 1) & (dir_bin == 1))) | hls_bin == 1] = 1
 
 		return final_combined, abs_bin, mag_bin, dir_bin, hls_bin  
 
@@ -130,7 +133,7 @@ class Threshold():
 if __name__ == '__main__':
 
 
-	img_file = '/home/zhangcaocao/catkin_ws/src/lane_detection/test/test1.jpg'
+	img_file = '/home/ubuntu/catkin_ws/src/lane_detection/test/test1.jpg'
 	img = calibration_main.undistort_image(img_file, Visualization=False)
 	all_combined, abs_bin, mag_bin, dir_bin, hls_bin = Threshold().combined_thresh(img)
 	plt.subplot(3, 3, 1)
