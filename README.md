@@ -26,7 +26,7 @@ PID的实现，在"main.py"中被调用。
 
 1、本项目并不是开箱即用的，你需要一步一步的利用`/src/lane_detection`文件夹下的文件进行参数的测试，大部分文件内都是可以直接运行的，例如：
 
-颜色阈值参数的调整：
+`src\lane_detection\thresholding_main.py` 颜色阈值参数的调整：
 
 ```python
 if __name__ == '__main__':
@@ -56,7 +56,7 @@ if __name__ == '__main__':
 
 （1）运行图像发布节点：
 
-图像大小为 68 x 80，发布频率为30Hz。
+图像大小为 60 x 80，发布频率为30Hz。
 ```bash
 roscore
 
